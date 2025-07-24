@@ -11,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: fm
+    id: fm_station_finder
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -51,14 +51,14 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [56, 608.0]
+    coordinate: [24, 552.0]
     rotation: 0
     state: enabled
 - name: center_freq
   id: variable
   parameters:
     comment: ''
-    value: 97e6
+    value: 98e6
   states:
     bus_sink: false
     bus_source: false
@@ -66,11 +66,11 @@ blocks:
     coordinate: [256, 8.0]
     rotation: 0
     state: enabled
-- name: channel_freq
+- name: channel_width
   id: variable
   parameters:
     comment: ''
-    value: 95.8e6
+    value: 200e3
   states:
     bus_sink: false
     bus_source: false
@@ -78,32 +78,23 @@ blocks:
     coordinate: [352, 8.0]
     rotation: 0
     state: enabled
-- name: channel_freq_slider
-  id: variable_qtgui_range
+- name: current_freq
+  id: variable
   parameters:
     comment: ''
-    gui_hint: ''
-    label: Station frequency
-    min_len: '200'
-    orient: QtCore.Qt.Horizontal
-    rangeType: float
-    start: 88e6
-    step: 0.1e6
-    stop: 105e6
     value: 95.8e6
-    widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 608.0]
+    coordinate: [584, 8.0]
     rotation: 0
     state: enabled
-- name: channel_width
+- name: fft_size
   id: variable
   parameters:
     comment: ''
-    value: 200e3
+    value: '1024'
   states:
     bus_sink: false
     bus_source: false
@@ -123,6 +114,22 @@ blocks:
     coordinate: [168, 8.0]
     rotation: 0
     state: enabled
+- name: variable_qtgui_label_0
+  id: variable_qtgui_label
+  parameters:
+    comment: ''
+    formatter: None
+    gui_hint: (1, 0, 1, 1)
+    label: 'Station:'
+    type: real
+    value: current_freq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1272, 552.0]
+    rotation: 0
+    state: enabled
 - name: analog_sig_source_x_0
   id: analog_sig_source_x
   parameters:
@@ -130,7 +137,7 @@ blocks:
     alias: ''
     amp: '1'
     comment: ''
-    freq: center_freq - channel_freq_slider
+    freq: center_freq - current_freq
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
@@ -143,7 +150,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 400.0]
+    coordinate: [120, 400.0]
     rotation: 0
     state: enabled
 - name: analog_wfm_rcv_0
@@ -160,7 +167,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1056, 264.0]
+    coordinate: [832, 416.0]
     rotation: 0
     state: enabled
 - name: audio_sink_0
@@ -177,7 +184,52 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1064, 392.0]
+    coordinate: [832, 544.0]
+    rotation: 0
+    state: enabled
+- name: blocks_complex_to_mag_squared_0
+  id: blocks_complex_to_mag_squared
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    vlen: fft_size
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [904, 256.0]
+    rotation: 0
+    state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+    log_level: info
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1304, 320.0]
+    rotation: 0
+    state: disabled
+- name: blocks_msgpair_to_var_0
+  id: blocks_msgpair_to_var
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    target: current_freq
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1536, 240.0]
     rotation: 0
     state: enabled
 - name: blocks_multiply_const_vxx_0
@@ -195,7 +247,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1072, 336.0]
+    coordinate: [840, 488.0]
     rotation: 0
     state: enabled
 - name: blocks_multiply_xx_0
@@ -213,7 +265,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [568, 264.0]
+    coordinate: [336, 416.0]
+    rotation: 0
+    state: enabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: fft_size
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [504, 264.0]
     rotation: 0
     state: enabled
 - name: blocks_throttle2_0
@@ -234,7 +304,134 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 248.0]
+    coordinate: [320, 248.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom scipy.signal import find_peaks\nfrom gnuradio\
+      \ import gr\nimport pmt \n\nfrom collections import Counter\n\nclass StationFinder(gr.sync_block):\n\
+      \    def __init__(self):\n        gr.sync_block.__init__(\n            self,\n\
+      \            name=\"station_finder\",\n            in_sig=[(np.float32, 1024)],\n\
+      \            out_sig=[]\n        )\n\n        self.fft_size = 1024\n       \
+      \ self.samp_rate = 20e6\n        self.center_freq = 98e6\n        self.frames_per_scan\
+      \ = 20000  # 1 sec at 20k vectors/sec\n        self.accumulator = np.zeros(self.fft_size,\
+      \ dtype=np.float64)\n        self.frame_count = 0\n\n        self.station_freqs\
+      \ = []\n        self.last_station_freqs = []\n\n        self.message_port_register_out(pmt.intern(\"\
+      stations_out\"))\n\n    def work(self, input_items, output_items):\n       \
+      \ in0 = input_items[0]\n        n = len(in0)\n\n        for i in range(n):\n\
+      \            self.accumulator += in0[i]\n            self.frame_count += 1\n\
+      \n            if self.frame_count >= self.frames_per_scan:\n               \
+      \ avg_spectrum = self.accumulator / self.frames_per_scan\n                self.accumulator[:]\
+      \ = 0\n                self.frame_count = 0\n\n                center_bin =\
+      \ self.fft_size // 2\n                avg_spectrum[center_bin-2:center_bin+3]\
+      \ = 0\n\n                norm_spectrum = avg_spectrum / np.max(avg_spectrum)\n\
+      \n                peaks, _ = find_peaks(\n                    norm_spectrum,\n\
+      \                    #    P_dB = 10 * log10(P_linear)\n                    #\
+      \ => P_linear = 10 ** (p_dB / 10)\n                    # Noise: -71dB\n    \
+      \                # Weak: -67dB => 4dB above noise\n                    # Strong:\
+      \ -49dB\n                    prominence=0.05, # 0.07\n                    distance=20\n\
+      \                )\n\n                if len(peaks) > 0:\n                 \
+      \   freqs = np.linspace(\n                        self.center_freq - self.samp_rate\
+      \ / 2,\n                        self.center_freq + self.samp_rate / 2,\n   \
+      \                     self.fft_size\n                    )\n               \
+      \     peak_freqs = freqs[peaks]\n                    peak_freqs_khz = np.round(peak_freqs\
+      \ / 1000) * 1000\n\n                    self.last_station_freqs = self.station_freqs\n\
+      \                    self.station_freqs = np.unique(peak_freqs_khz.astype(np.float32))\n\
+      \n                    if Counter(self.last_station_freqs) == Counter(self.station_freqs):\n\
+      \                        break\n\n                    self.station_freqs = np.sort(self.station_freqs)\n\
+      \n                    pmt_msg = pmt.init_f32vector(len(self.station_freqs),\
+      \ self.station_freqs)\n                    self.message_port_pub(pmt.intern(\"\
+      stations_out\"), pmt_msg)\n\n        return n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('station_finder', 'StationFinder', [], [('0', 'float', 1024)], [('stations_out',
+      'message', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1080, 264.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_1
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\n\nfrom\
+      \ collections import Counter\n\nclass station_handler(gr.basic_block):\n   \
+      \ def __init__(self):\n        gr.basic_block.__init__(self,\n            name=\"\
+      station_handler\",\n            in_sig=None,\n            out_sig=None)\n\n\
+      \        self.message_port_register_in(pmt.intern(\"stations_in\"))\n      \
+      \  self.set_msg_handler(pmt.intern(\"stations_in\"), self.handle_stations)\n\
+      \n        self.message_port_register_in(pmt.intern(\"cmd_in\"))\n        self.set_msg_handler(pmt.intern(\"\
+      cmd_in\"), self.handle_command)\n\n        self.stations = []\n        self.last_stations\
+      \ = []\n        self.current_index = 0\n\n        self.current_freq = 0\n  \
+      \      self.last_freq = 0\n\n        self.message_port_register_out(pmt.intern(\"\
+      freq_out\"))\n\n\n    def handle_stations(self, msg):\n        if pmt.is_f32vector(msg):\n\
+      \            freqs = sorted(set(pmt.to_python(msg)))\n        else:\n      \
+      \      return\n\n        if not freqs:\n            return\n\n        self.last_freq\
+      \ = self.current_freq\n        self.current_freq = self.stations[self.current_index]\
+      \ if self.stations else None\n\n        self.last_stations = self.stations\n\
+      \        self.stations = freqs\n\n        if Counter(self.last_stations) ==\
+      \ Counter(self.stations):\n            return\n\n        if self.last_freq ==\
+      \ self.current_freq:\n            return\n\n        if self.current_freq in\
+      \ self.stations:\n            self.current_index = self.stations.index(self.current_freq)\n\
+      \        \n        if self.current_index >= len(self.stations):\n          \
+      \  return\n        \n        self.set_freq(self.stations[self.current_index])\n\
+      \n\n    def handle_command(self, msg):\n        if pmt.is_pair(msg):\n     \
+      \       key = pmt.symbol_to_string(pmt.car(msg))\n            val = pmt.cdr(msg)\n\
+      \n            if key == \"cmd\":\n                if pmt.is_symbol(val):\n \
+      \                   cmd = pmt.symbol_to_string(val)\n                elif pmt.is_string(val):\n\
+      \                    cmd = pmt.to_python(val)\n                else:\n     \
+      \               return\n\n                if cmd == \"next\":\n            \
+      \        self.step_next()\n                elif cmd == \"prev\":\n         \
+      \           self.step_prev()\n\n\n    def step_next(self):\n        if not self.stations:\n\
+      \            return\n        self.current_index = (self.current_index + 1) %\
+      \ len(self.stations)\n        self.set_freq(self.stations[self.current_index])\n\
+      \n    def step_prev(self):\n        if not self.stations:\n            return\n\
+      \        self.current_index = (self.current_index - 1) % len(self.stations)\n\
+      \        self.set_freq(self.stations[self.current_index])\n\n\n    def set_freq(self,\
+      \ freq):\n        msg = pmt.cons(pmt.intern(\"freq\"), pmt.from_double(freq))\n\
+      \        self.message_port_pub(pmt.intern(\"freq_out\"), msg)\n        print(f\"\
+      Station {self.current_index + 1}/{len(self.stations)}: {freq / .1e7} MHz\")\n\
+      \n    def get_freq(self):\n        return self.current_freq\n\n\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('station_handler', 'station_handler', [], [('cmd_in', 'message', 1),
+      ('stations_in', 'message', 1)], [('freq_out', 'message', 1)], '', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1328, 232.0]
+    rotation: 0
+    state: enabled
+- name: fft_vxx_0
+  id: fft_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    fft_size: fft_size
+    forward: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nthreads: '1'
+    shift: 'True'
+    type: complex
+    window: window.blackmanharris(1024)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 224.0]
     rotation: 0
     state: enabled
 - name: low_pass_filter_0
@@ -258,7 +455,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [696, 220.0]
+    coordinate: [464, 372.0]
+    rotation: 0
+    state: enabled
+- name: next_button
+  id: variable_qtgui_msg_push_button
+  parameters:
+    comment: ''
+    gui_hint: (0, 1, 1, 1)
+    label: Next
+    msgName: cmd
+    relBackgroundColor: navy
+    relFontColor: white
+    type: string
+    value: next
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 136.0]
     rotation: 0
     state: enabled
 - name: osmosdr_source_0
@@ -615,7 +830,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [128, 172.0]
+    coordinate: [64, 172.0]
+    rotation: 0
+    state: enabled
+- name: prev_button
+  id: variable_qtgui_msg_push_button
+  parameters:
+    comment: ''
+    gui_hint: (0,0,1,1)
+    label: Previous
+    msgName: cmd
+    relBackgroundColor: navy
+    relFontColor: white
+    type: string
+    value: prev
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1096, 32.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -650,7 +883,7 @@ blocks:
     comment: ''
     ctrlpanel: 'True'
     fc: center_freq
-    fftsize: '1024'
+    fftsize: fft_size
     freqhalf: 'True'
     grid: 'False'
     gui_hint: ''
@@ -696,90 +929,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 168.0]
+    coordinate: [480, 168.0]
     rotation: 0
     state: enabled
-- name: qtgui_freq_sink_x_0_0
-  id: qtgui_freq_sink_x
-  parameters:
-    affinity: ''
-    alias: ''
-    alpha1: '1.0'
-    alpha10: '1.0'
-    alpha2: '1.0'
-    alpha3: '1.0'
-    alpha4: '1.0'
-    alpha5: '1.0'
-    alpha6: '1.0'
-    alpha7: '1.0'
-    alpha8: '1.0'
-    alpha9: '1.0'
-    autoscale: 'True'
-    average: '0.05'
-    axislabels: 'True'
-    bw: samp_rate
-    color1: '"blue"'
-    color10: '"dark blue"'
-    color2: '"red"'
-    color3: '"green"'
-    color4: '"black"'
-    color5: '"cyan"'
-    color6: '"magenta"'
-    color7: '"yellow"'
-    color8: '"dark red"'
-    color9: '"dark green"'
-    comment: ''
-    ctrlpanel: 'True'
-    fc: channel_freq_slider
-    fftsize: '1024'
-    freqhalf: 'True'
-    grid: 'False'
-    gui_hint: ''
-    label: Relative Gain
-    label1: ''
-    label10: ''''''
-    label2: ''''''
-    label3: ''''''
-    label4: ''''''
-    label5: ''''''
-    label6: ''''''
-    label7: ''''''
-    label8: ''''''
-    label9: ''''''
-    legend: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    name: '""'
-    nconnections: '1'
-    norm_window: 'False'
-    showports: 'False'
-    tr_chan: '0'
-    tr_level: '0.0'
-    tr_mode: qtgui.TRIG_MODE_FREE
-    tr_tag: '""'
-    type: complex
-    units: dB
-    update_time: '0.10'
-    width1: '1'
-    width10: '1'
-    width2: '1'
-    width3: '1'
-    width4: '1'
-    width5: '1'
-    width6: '1'
-    width7: '1'
-    width8: '1'
-    width9: '1'
-    wintype: window.WIN_BLACKMAN_hARRIS
-    ymax: '10'
-    ymin: '-140'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [680, 384.0]
-    rotation: 0
-    state: disabled
 - name: rational_resampler_xxx_0
   id: rational_resampler_xxx
   parameters:
@@ -797,20 +949,28 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 248.0]
+    coordinate: [656, 400.0]
     rotation: 0
     state: enabled
 
 connections:
 - [analog_sig_source_x_0, '0', blocks_multiply_xx_0, '1']
 - [analog_wfm_rcv_0, '0', blocks_multiply_const_vxx_0, '0']
+- [blocks_complex_to_mag_squared_0, '0', epy_block_0, '0']
 - [blocks_multiply_const_vxx_0, '0', audio_sink_0, '0']
 - [blocks_multiply_xx_0, '0', low_pass_filter_0, '0']
-- [blocks_multiply_xx_0, '0', qtgui_freq_sink_x_0_0, '0']
+- [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
 - [blocks_throttle2_0, '0', blocks_multiply_xx_0, '0']
+- [blocks_throttle2_0, '0', blocks_stream_to_vector_0, '0']
 - [blocks_throttle2_0, '0', qtgui_freq_sink_x_0, '0']
+- [epy_block_0, stations_out, blocks_message_debug_0, print]
+- [epy_block_0, stations_out, epy_block_1, stations_in]
+- [epy_block_1, freq_out, blocks_msgpair_to_var_0, inpair]
+- [fft_vxx_0, '0', blocks_complex_to_mag_squared_0, '0']
 - [low_pass_filter_0, '0', rational_resampler_xxx_0, '0']
+- [next_button, pressed, epy_block_1, cmd_in]
 - [osmosdr_source_0, '0', blocks_throttle2_0, '0']
+- [prev_button, pressed, epy_block_1, cmd_in]
 - [rational_resampler_xxx_0, '0', analog_wfm_rcv_0, '0']
 
 metadata:
