@@ -52,7 +52,7 @@ class StationFinder(gr.sync_block):
                     # Weak: -67dB => 4dB above noise
                     # Strong: -49dB
                     prominence=0.05, # 0.07
-                    distance=10
+                    distance=20
                 )
 
                 if len(peaks) > 0:
@@ -72,7 +72,6 @@ class StationFinder(gr.sync_block):
 
                     self.station_freqs = np.sort(self.station_freqs)
 
-                    # Send as PMT f32vector
                     pmt_msg = pmt.init_f32vector(len(self.station_freqs), self.station_freqs)
                     self.message_port_pub(pmt.intern("stations_out"), pmt_msg)
 

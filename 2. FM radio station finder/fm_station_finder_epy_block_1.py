@@ -50,9 +50,6 @@ class station_handler(gr.basic_block):
 
         if self.current_freq in self.stations:
             self.current_index = self.stations.index(self.current_freq)
-        # else:
-        #     self.current_index = 0
-        
         
         if self.current_index >= len(self.stations):
             return
